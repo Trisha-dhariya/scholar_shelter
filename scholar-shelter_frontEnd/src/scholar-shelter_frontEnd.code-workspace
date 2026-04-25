@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../backEnd"
+		},
+		{
+			"path": "../../../smart-crop-advisory-system"
+		}
+	],
+	"settings": {}
+}
