@@ -15,7 +15,7 @@ function Signup() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/Signup", user);
+      const res = await axios.post("https://scholar-shelter.onrender.com/api/Signup", user);
       alert(res.data.message);
     } catch (err) {
       console.log(err);

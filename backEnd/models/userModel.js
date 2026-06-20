@@ -16,10 +16,17 @@ const userSchema = new schema({
         required:true,
         
     },
+    profileImage: { type: String, default: "" },
     profileCompleted: {
-  type: Boolean,
-  default: false
-}
+    type: Boolean,
+    default: false
+    },
+    role:{
+      type:String,
+        required:true,
+        
+    },
+
 
 });
 const userModel= mongoose.model("users",userSchema);

@@ -3,17 +3,27 @@ import SearchBar from "../components/SearchBar";
 import RoomCard from "../components/RoomCard";
 import FeatureCard from "../components/FeatureCard";
 import Footer from "../components/Footer";
-import { useEffect, useState } from "react";
-import axios from "axios";
+// import Feedback from "../components/Feedback";
+import React, { useState } from "react";
+
 function Home() {
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
   return (
    
     <>
     
       <Navbar />
       <SearchBar/>
+      <FeatureCard/>
+      <FeatureCard onOpenFeedback={() => setIsFeedbackOpen(true)} />
+    
+    {isFeedbackOpen && (
+       <div className="feedback-overlay">
+          <button onClick={() => setIsFeedbackOpen(false)}>Close</button>
+          <Feedback /> 
+       </div>
+    )}
       
-      <FeatureCard />
       <Footer  />
       
     </>

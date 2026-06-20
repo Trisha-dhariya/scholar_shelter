@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const hostelModel = require("../models/hostelModel");
+const hostelModel = require("../models/hostelModel"); // Your Mongoose Schema file
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
+
 console.log("Cloud Name:", process.env.CLOUDINARY_CLOUD_NAME);
 
 // 1. Cloudinary Configuration 
-// (Make sure these keys are in your .env file)
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -21,7 +21,7 @@ const storage = new CloudinaryStorage({
   params: async (req, file) => {
     return {
       folder: 'scholar_shelter_pgs',
-      format: 'jpg', // try forcing a format to see if it clears the error
+      format: 'jpg', 
       public_id: file.fieldname + '-' + Date.now(),
     };
   },
@@ -29,12 +29,13 @@ const storage = new CloudinaryStorage({
 
 const upload = multer({ storage: storage });
 
-// upload.single('image') handles the file upload to Cloudinary
+// --- POST: Add a new PG with Maps/Location Coordinates ---
 router.post("/add", upload.single('image'), async (req, res) => {
     try {
         const { 
             name, ownerName, contact, price, location, 
-            distanceFromUni, type, amenities, description ,ownerId 
+            distanceFromUni, type, amenities, description, ownerId,
+            latitude, longitude
         } = req.body;
 
         // 1. Validation for the 5 strictly required fields
@@ -42,22 +43,24 @@ router.post("/add", upload.single('image'), async (req, res) => {
             return res.status(400).json({ message: "Please fill all required fields" });
         }
 
-        // 2. Construct data object
+        // 2. Construct data object & include parsed coordinate markers
         const pgData = {
             name,
             ownerName,
             contact,
-            price: Number(price), // Ensure it's a number for MongoDB
+            price: Number(price), 
             location,
             distanceFromUni,
             type,
             amenities,
             description,
-            ownerId
-            
+            ownerId,
+            // Dynamic check or defaults to Dehradun center coordinate bounds
+            latitude: latitude ? Number(latitude) : 30.3403,
+            longitude: longitude ? Number(longitude) : 77.9156
         };
 
-        // 3. Attach image only if file exists
+        // 3. Attach image from Cloudinary path only if file exists
         if (req.file) {
             pgData.image = req.file.path;
         }
@@ -72,11 +75,12 @@ router.post("/add", upload.single('image'), async (req, res) => {
         });
 
     } catch (error) {
-       console.error("FULL ERROR LOG:", error); // Check your VS Code terminal for this!
-    res.status(500).json({ 
-        success: false, 
-        error: error.message,
-        stack: error.stack});
+        console.error("FULL ERROR LOG:", error);
+        res.status(500).json({ 
+            success: false, 
+            error: error.message,
+            stack: error.stack
+        });
     }
 });
 
@@ -100,10 +104,11 @@ router.get("/:id", async (req, res) => {
         res.status(500).json({ message: "Server error", error: error.message });
     }
 });
+
+// --- DELETE: Remove PG ---
 router.delete("/delete/:id", async (req, res) => {
   try {
     const pg = await hostelModel.findById(req.params.id);
-
     if (!pg) {
       return res.status(404).json({ message: "Property not found" });
     }
@@ -113,32 +118,17 @@ router.delete("/delete/:id", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-// router.put in your pgs route file
-router.put("/update/:id", upload.single('image'), async (req, res) => {
-  try {
-    const updateData = { ...req.body };
 
-    // If a new image is uploaded, update the path
-    if (req.file) {
-      updateData.image = req.file.path;
-    }
-
-    const updatedPG = await hostelModel.findByIdAndUpdate(
-      req.params.id,
-      updateData,
-      { new: true } // Returns the modified document rather than the original
-    );
-
-    res.status(200).json(updatedPG);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-// UPDATE ROUTE
+// --- PUT: Update PG with Map Coordinates (Cleaned & Merged) ---
 router.put("/update/:id", upload.single('image'), async (req, res) => {
     try {
         const updateData = { ...req.body };
         
+        // Ensure that numeric values are handled correctly if passed in updates
+        if (updateData.price) updateData.price = Number(updateData.price);
+        if (updateData.latitude) updateData.latitude = Number(updateData.latitude);
+        if (updateData.longitude) updateData.longitude = Number(updateData.longitude);
+
         // If a new image was uploaded via Cloudinary/Multer
         if (req.file) {
             updateData.image = req.file.path;
@@ -147,12 +137,17 @@ router.put("/update/:id", upload.single('image'), async (req, res) => {
         const updatedPG = await hostelModel.findByIdAndUpdate(
             req.params.id, 
             { $set: updateData }, 
-            { new: true } // This returns the newly updated document
+            { new: true } // Returns the newly updated document
         );
+
+        if (!updatedPG) {
+            return res.status(404).json({ message: "Property record context not found." });
+        }
 
         res.status(200).json(updatedPG);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 });
+
 module.exports = router;

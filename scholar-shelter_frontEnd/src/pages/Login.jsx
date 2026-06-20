@@ -18,7 +18,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/Login", user);
+      const res = await axios.post("https://scholar-shelter.onrender.com/api/Login", user);
       alert("Login Success");
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));

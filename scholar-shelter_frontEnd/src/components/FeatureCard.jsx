@@ -40,6 +40,9 @@ function FeatureCard() {
           <div className="feature-icon-circle">💰</div>
           <h3>Affordable Rooms</h3>
           <p>Budget-friendly options tailored for students. No hidden brokerage.</p>
+           {/* <button className="feature-feedback-btn" onClick={onOpenFeedback}>
+            Give Feedback
+          </button> */}
         </div>
       </div>
       

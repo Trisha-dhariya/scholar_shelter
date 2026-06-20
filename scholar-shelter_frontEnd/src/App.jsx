@@ -12,7 +12,10 @@ import EditPG from "./pages/EditPG";
 import UserPanel from "./components/UserPanel";
 import PGDetails from "./pages/PGDetails";
 import ShortListed from "./components/ShortListed";
-// import AccountSettings from './components/AccountSettings';
+ import AccountSettings from './components/AccountSettings';
+import HelpSupport from "./pages/HelpSupport"; 
+import AdminDashboard from "./pages/AdminDashboard";
+
 function App() {
   
 
@@ -31,7 +34,10 @@ function App() {
           <Route path="/pg/:id" element={<PGDetails />} />
           <Route path="/edit-pg/:id" element={<EditPG />} />
           <Route path="/rooms" element={<ShortListed />} />
-          {/* <Route path="/settings" element={<AccountSettings user={user} />} /> */}
+          <Route path="/settings" element={<AccountSettings  />} />
+          <Route path="/help" element={<HelpSupport/>}/> 
+          <Route path="/add-pg" element={<AddPG />} />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </Router>
 

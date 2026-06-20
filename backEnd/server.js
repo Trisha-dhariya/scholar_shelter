@@ -4,6 +4,7 @@ let express= require('express');
 //import routes
 const authRoutes = require("./routes/authRoutes");
 const pgRoutes = require("./routes/pgRoutes");
+const supportRoutes = require('./routes/supportRoutes');
 //help in front back diff port
 const cors = require("cors");
 //let {dbconnection}
@@ -19,7 +20,7 @@ app.use(cors({
 }));
 app.use("/api", authRoutes);
 app.use("/api/pgs", pgRoutes);
-
+app.use("/api/support", supportRoutes);
 
 app.listen(5000,() => {
     console.log("Server running on port 5000");

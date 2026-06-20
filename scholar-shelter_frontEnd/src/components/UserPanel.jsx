@@ -16,6 +16,14 @@ function UserPanel({ open, setOpen, user }) {
     // 3. Force a reload to clear all React states (User becomes null)
     window.location.reload(); 
   };
+  const getAvatar = () => {
+    if (user?.profilePic) return user.profilePic;
+    if (user?.userName) {
+      // Using the same blue background (0095f6) as Navbar and Settings
+      return `https://ui-avatars.com/api/?name=${encodeURIComponent(user.userName)}&background=0095f6&color=fff&size=128`;
+    }
+    return "/images/user.png"; // Fallback
+  };
 
   return (
     <>
@@ -33,8 +41,8 @@ function UserPanel({ open, setOpen, user }) {
           {user ? (
             <>
               <div className="profile-header">
-                <img 
-                  src={user.profilePic || "/images/user.png"} 
+               <img 
+                  src={getAvatar()} 
                   className="drawer-img" 
                   alt="User Profile" 
                 />

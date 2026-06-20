@@ -3,6 +3,9 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const router = express.Router();
+const multer = require('multer');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
 //signup api
 
@@ -135,5 +138,91 @@ router.get("/pgs", (req, res) => {
     }
   ];
   res.json(dummyPGs);
+});
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'scholar_shelter_users', // Distinct folder for users
+    format: 'jpg',
+    public_id: (req, file) => 'profile-' + Date.now(),
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// --- 2. The Profile Update Route ---
+router.put("/user/update", upload.single('image'), async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) return res.status(401).json({ message: "Unauthorized" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Build update object
+    const updateData = { ...req.body };
+
+    // If Cloudinary uploaded a new file
+    if (req.file) {
+      updateData.profileImage = req.file.path; // Update this to match your Model
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      decoded.id,
+      { $set: updateData },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json(updatedUser);
+
+  } catch (error) {
+    console.error("Update Error:", error);
+    res.status(500).json({ message: error.message });
+  }
+});
+router.put("/user/change-password", async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(" ")[1];
+
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized: No token provided" });
+    }
+
+    // 1. Verify Token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const { newPassword } = req.body;
+
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).json({ message: "Password must be at least 6 characters long" });
+    }
+
+    // 2. Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // 3. Update the User in DB
+    await User.findByIdAndUpdate(decoded.id, {
+      $set: { password: hashedPassword }},
+  { returnDocument: 'after'
+    });
+
+    res.status(200).json({ message: "Password updated successfully" });
+
+  } catch (err) {
+    console.error("Password Change Error:", err);
+    res.status(500).json({ message: "Server error while changing password" });
+  }
+});
+router.get("/user/password-check", (req, res) => {
+    res.send("Password route is reachable!");
 });
 module.exports=router;
