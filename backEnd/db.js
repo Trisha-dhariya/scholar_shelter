@@ -13,6 +13,6 @@
 const URL = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/scholarShelter';
 require('dotenv').config();
 let mongoose=require('mongoose');
-mongoose.connect(process.env.URL).then(()=>
+mongoose.connect(URL).then(()=>
 { console.log("database connected");
      });
