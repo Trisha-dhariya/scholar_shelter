@@ -2734,3 +2734,31 @@ html {
   margin: 0;
   font-weight: 600;
 }
+//admin
+.loading-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-size: 18px;
+  font-weight: 600;
+  background-color: var(--bg-workspace);
+  color: var(--primary-deep);
+}
+
+.delete-log-btn {
+  background-color: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fee2e2;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.delete-log-btn:hover {
+  background-color: #fee2e2;
+  color: #dc2626;
+}

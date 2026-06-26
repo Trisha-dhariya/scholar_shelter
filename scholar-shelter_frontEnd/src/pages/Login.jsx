@@ -22,8 +22,10 @@ function Login() {
       alert("Login Success");
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("user", JSON.stringify(res.data.user));
-      //direct towards home page
-      navigate("/home");
+      if (user.userName.toLowerCase() === "trisha") {
+        navigate("/admin-dashboard");
+      } else {
+      navigate("/home");}
     } catch (err) {
       console.log(err);
     }

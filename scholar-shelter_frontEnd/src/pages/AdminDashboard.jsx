@@ -1,91 +1,184 @@
-import React, { useState, useEffect } from "react";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import "../App.css";
 
-const AdminDashboard = () => {
-  const [pgs, setPgs] = useState([]);
+export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalUsers: '0',
+    totalListings: '0',
+    pendingReviews: '0',
+    newListings: '0',
+    userVerifications: '0'
+  });
+  const [recentActivity, setRecentActivity] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const user = JSON.parse(localStorage.getItem("user"));
-  const MY_ADMIN_ID = "trisha";
 
-if (!user || user._id !== MY_ADMIN_ID) {
-    return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <h1>🚫 Access Denied</h1>
-        <p>You are not authorized to view this page.</p>
-        <button onClick={() => window.location.href = "/"}>Back to Home</button>
-      </div>
-    );
-  }
+  const API_BASE_URL = 'https://scholar-shelter.onrender.com/api/admin';
 
   useEffect(() => {
-    fetchPGs();
-  }, []);
-
-  const fetchPGs = async () => {
-    try {
-      const res = await axios.get("https://scholar-shelter.onrender.com/api/pgs");
-      setPgs(res.data);
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load properties.");
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm("Are you sure you want to delete this listing?")) {
+    // 1. Define the fetch execution logic
+    const fetchDashboardData = async () => {
       try {
-        await axios.delete(`https://scholar-shelter.onrender.com/api/pgs/${id}`);
-        setPgs(pgs.filter((pg) => pg._id !== id));
+        const response = await axios.get(`${API_BASE_URL}/dashboard-overview`);
+        if (response.data) {
+          // Updates numbers and calculations instantly across the screen
+          setStats(response.data.stats);
+          setRecentActivity(response.data.recentActivity);
+        }
       } catch (err) {
-        alert("Error deleting property");
+        console.error("Automated background synchronization failed:", err);
+      } finally {
+        setLoading(false);
       }
-    }
-  };
+    };
 
+    // 2. Trigger the fetch immediately upon loading the page
+    fetchDashboardData();
+
+    // 3. Set up the auto-update interval loop (Runs every 30 seconds)
+    const updateInterval = setInterval(() => {
+      console.log("Auto-calculating latest platform stats...");
+      fetchDashboardData();
+    }, 30000); // 30,000 milliseconds = 30 seconds
+
+    // 4. Clean up the interval loop if you exit the page to prevent memory leaks
+    return () => clearInterval(updateInterval);
+  }, []);
   return (
-    <div className="admin-container" style={{ padding: "40px" }}>
-      <h1>Admin Dashboard</h1>
-      <p>Manage Property Listings</p>
+    <div className="admin-container">
+      {/* SIDEBAR VIEW */}
+      <aside className="admin-sidebar">
+        <div className="sidebar-menu">
+          <button className="menu-item active"><span className="icon">📊</span> Dashboard Overview</button>
+          <button className="menu-item"><span className="icon">👥</span> Manage Users</button>
+          <div className="sub-menu-item">↳ Approval Queue</div>
+          <button className="menu-item"><span className="icon">🏠</span> Manage Properties</button>
+          <div className="sub-menu-item">↳ Review Listings</div>
+          <button className="menu-item"><span className="icon">⭐</span> Shortlist Activity</button>
+          <button className="menu-item"><span className="icon">⚙️</span> Settings</button>
+          <button className="menu-item logout"><span className="icon">🚪</span> Logout</button>
+        </div>
+      </aside>
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      
-      {loading ? (
-        <p>Loading listings...</p>
-      ) : (
-        <table className="admin-table" style={{ width: "100%", marginTop: "20px", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ textAlign: "left", borderBottom: "2px solid #eee" }}>
-              <th>Name</th>
-              <th>Owner</th>
-              <th>Location</th>
-              <th>Price</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {pgs.map((pg) => (
-              <tr key={pg._id} style={{ borderBottom: "1px solid #eee" }}>
-                <td style={{ padding: "15px 0" }}>{pg.name}</td>
-                <td>{pg.ownerName}</td>
-                <td>{pg.location}</td>
-                <td>₹{pg.price}</td>
-                <td>
-                  <button 
-                    onClick={() => handleDelete(pg._id)}
-                    style={{ background: "#ff4d4d", color: "white", border: "none", padding: "5px 10px", borderRadius: "4px", cursor: "pointer" }}
-                  >
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      {/* CORE WORKSPACE PANEL */}
+      <div className="admin-main">
+        <header className="admin-header">
+          <div className="header-brand">
+            <div className="logo-placeholder">🏠</div>
+            <h1>Scholar Shelter</h1>
+          </div>
+          <div className="header-profile">
+            <span className="list-property-link">List Your Property</span>
+            <div className="profile-badge">Priya</div>
+          </div>
+        </header>
+
+        <div className="admin-workspace">
+          <h2 className="workspace-title">Platform Overview</h2>
+
+          {/* DYNAMIC CARD TILES */}
+          <section className="stats-grid">
+            <div className="stat-card">
+              <div className="stat-info">
+                <span className="stat-label">Total Registered Users</span>
+                <span className="stat-value">{stats.totalUsers}</span>
+                <span className="stat-footer text-muted">Manual creation</span>
+              </div>
+              <button className="stat-action-btn">+</button>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-info">
+                <span className="stat-label">Total Property Listings</span>
+                <span className="stat-value">{stats.totalListings}</span>
+                <span className="stat-badge pill-green">Active, {stats.pendingReviews} Pending Review</span>
+              </div>
+              <button className="stat-action-btn">▼</button>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-info">
+                <span className="stat-label">User Verifications</span>
+                <span className="stat-value">{stats.userVerifications}</span>
+                <span className="stat-badge pill-amber">Pending Approval</span>
+              </div>
+              <button className="stat-action-btn">❯</button>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-info">
+                <span className="stat-label">Listings Submitted for Review</span>
+                <span className="stat-value">{stats.newListings}</span>
+                <span className="stat-badge pill-green">New</span>
+              </div>
+              <button className="stat-action-btn">❯</button>
+            </div>
+          </section>
+
+          {/* COMMAND CENTER CONSOLE */}
+          <section className="action-panel">
+            <h3>Quick Action Center</h3>
+            <div className="action-button-group">
+              <button className="action-btn-primary alert-badge">Review New Properties</button>
+              <button className="action-btn-primary">Verify New User Accounts</button>
+            </div>
+
+            <form className="notice-form" onSubmit={handleSendNotice}>
+              <input 
+                type="text" 
+                placeholder="Enter your time notice..." 
+                value={notice}
+                onChange={(e) => setNotice(e.target.value)}
+              />
+              <button type="submit" className="send-btn">Send</button>
+            </form>
+
+            <div className="filter-row">
+              <select defaultValue=""><option value="" disabled>Filter Properties by: Location</option></select>
+              <select defaultValue=""><option value="" disabled>Price Range</option></select>
+              <input 
+                type="text" 
+                className="search-input" 
+                placeholder="🔍 Search live system telemetry logs..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </section>
+
+          {/* ACTIVITY SYSTEM ARCHIVE */}
+          <section className="activity-panel">
+            <h3>Recent System Activity</h3>
+            <div className="table-responsive">
+              <table className="activity-table">
+                <thead>
+                  <tr>
+                    <th>Property / System Log Detail</th>
+                    <th>Status Context</th>
+                    <th>Administrative Control</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredActivity.map((activity) => (
+                    <tr key={activity._id}>
+                      <td>{activity.detail}</td>
+                      <td className={`status-cell ${activity.statusClass}`}>{activity.status}</td>
+                      <td>
+                        <button 
+                          className="delete-log-btn"
+                          onClick={() => handleDeleteListing(activity._id)}
+                        >
+                          🗑️ Purge Listing
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
     </div>
   );
-};
-
-export default AdminDashboard;
+}

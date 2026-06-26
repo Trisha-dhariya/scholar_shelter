@@ -37,7 +37,7 @@ function App() {
           <Route path="/settings" element={<AccountSettings  />} />
           <Route path="/help" element={<HelpSupport/>}/> 
           <Route path="/add-pg" element={<AddPG />} />
-          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin-dashboard" element={<AdminRoute> <AdminDashboard /></AdminRoute>} />
         </Routes>
       </Router>
 
