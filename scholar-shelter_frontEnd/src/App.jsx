@@ -17,7 +17,16 @@ import HelpSupport from "./pages/HelpSupport";
 import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
-  
+  const AdminRoute = ({ children }) => {
+  const localUser = localStorage.getItem("user");
+  const user = localUser ? JSON.parse(localUser) : null;
+
+  // Protect path: immediately reject entry unless the username is exactly "priya"
+  if (!user || user.userName?.toLowerCase() !== "priya") {
+    return <Navigate to="/Login" replace />;
+  }
+  return children;
+};
 
   return (
     <div className="container">
