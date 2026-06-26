@@ -94,10 +94,16 @@ const RealRouteMap = ({ pgName, pgLat, pgLng }) => {
     }
   };
 
-  const launchExternalNavigation = () => {
+ const launchExternalNavigation = () => {
     if (!userCoords) return;
-    // FIXED: Corrected the template literal backtick evaluation format here 👇
-    window.open(`https://www.google.com/maps/dir/?api=1&origin=${userCoords[0]},${userCoords[1]}&destination=${pgLat},${pgLng}&travelmode=walking`, "_blank");
+    
+    const origin = `${userCoords[0]},${userCoords[1]}`;
+    const destination = `${pgLat},${pgLng}`;
+    
+    window.open(
+      `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=walking`, 
+      "_blank"
+    );
   };
 
   return (
