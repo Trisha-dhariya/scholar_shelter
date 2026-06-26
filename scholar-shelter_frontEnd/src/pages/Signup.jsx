@@ -17,6 +17,7 @@ function Signup() {
     try {
       const res = await axios.post("https://scholar-shelter.onrender.com/api/Signup", user);
       alert(res.data.message);
+      navigate("/home");
     } catch (err) {
       console.log(err);
     }
