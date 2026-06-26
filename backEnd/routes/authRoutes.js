@@ -27,7 +27,8 @@ console.log("Creating user...");
             userName,
             email,
             password: hashedPassword,
-            profileCompleted: false
+            profileCompleted: false,
+            role:"user"
         })
 
         res.status(201).json({
