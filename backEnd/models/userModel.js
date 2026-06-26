@@ -23,7 +23,7 @@ const userSchema = new schema({
     },
     role:{
       type:String,
-        required:true,
+        required:false,
         
     },
 
